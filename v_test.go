@@ -127,3 +127,26 @@ func TestV_Validate_embed(t *testing.T) {
 		t.Fatal("first error should be nonzero:", errs[0])
 	}
 }
+
+func TestV_Validate_uninterfaceable(t *testing.T) {
+	type X struct {
+		a int `validate:"nonzero"`
+	}
+
+	vd := make(V)
+	vd["nonzero"] = func(i interface{}) error {
+		n := i.(int)
+		if n == 0 {
+			return fmt.Errorf("should be nonzero")
+		}
+		return nil
+	}
+
+	errs := vd.Validate(X{
+		a: 0,
+	})
+
+	if len(errs) != 0 {
+		t.Fatal("wrong number of errors for two failures:", errs)
+	}
+}
