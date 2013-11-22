@@ -69,8 +69,9 @@ func (v V) Validate(s interface{}) []error {
 			vf := v[vt]
 			if vf == nil {
 				errs = append(errs, fmt.Errorf("field %s has an undefined validator: %q", f.Name, vt))
+				continue
 			}
-			if err := v[vt](val); err != nil {
+			if err := vf(val); err != nil {
 				errs = append(errs, fmt.Errorf("field %s is invalid: %v", f.Name, err))
 			}
 		}
