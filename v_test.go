@@ -60,3 +60,38 @@ func TestV_Validate_undef(t *testing.T) {
 		t.Fatal("wrong message for an undefined validator:", errs[0].Error())
 	}
 }
+
+func TestV_Validate_multi(t *testing.T) {
+	type X struct {
+		A int `validate:"nonzero,odd"`
+	}
+
+	vd := make(V)
+	vd["nonzero"] = func(i interface{}) error {
+		n := i.(int)
+		if n == 0 {
+			return fmt.Errorf("should be nonzero")
+		}
+		return nil
+	}
+	vd["odd"] = func(i interface{}) error {
+		n := i.(int)
+		if n & 1 == 0 {
+			return fmt.Errorf("%d is not odd", n)
+		}
+		return nil
+	}
+	errs := vd.Validate(X{
+		A: 0,
+	})
+
+	if len(errs) != 2 {
+		t.Fatal("wrong number of errors for two failures: %v", errs)
+	}
+	if errs[0].Error() != "field A is invalid: should be nonzero" {
+		t.Fatal("first error should be nonzero:", errs[0])
+	}
+	if errs[1].Error() != "field A is invalid: 0 is not odd" {
+		t.Fatal("second error should be odd:", errs[1])
+	}
+}
