@@ -7,9 +7,9 @@ Any fields tagged with the key "validate" will be validated via a user-defined l
 For example:
 
 	type X struct {
-		A string `validate:"long"
-		B string `validate:"short"
-		C string `validate:"long,proper"
+		A string `validate:"long"`
+		B string `validate:"short"`
+		C string `validate:"long,proper"`
 		D string
 	}
 
