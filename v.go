@@ -15,7 +15,7 @@ For example:
 
 The validators are defined in a map like so:
 
-	vd := make(Validator)
+	vd := make(validate.V)
 	vd["long"] = func(i interface{}) error {
 		…
 	}
