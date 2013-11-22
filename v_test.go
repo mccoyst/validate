@@ -96,7 +96,7 @@ func TestV_Validate_multi(t *testing.T) {
 	}
 }
 
-func TestV_Validate_embed(t *testing.T) {
+func ExampleV_Validate_struct(t *testing.T) {
 	type X struct {
 		A int `validate:"nonzero"`
 	}
