@@ -95,3 +95,35 @@ func TestV_Validate_multi(t *testing.T) {
 		t.Fatal("second error should be odd:", errs[1])
 	}
 }
+
+func TestV_Validate_embed(t *testing.T) {
+	t.Skip() // Embedded structs don't work yet.
+
+	type X struct {
+		A int `validate:"nonzero"`
+	}
+
+	type Y struct {
+		X
+	}
+
+	vd := make(V)
+	vd["nonzero"] = func(i interface{}) error {
+		n := i.(int)
+		if n == 0 {
+			return fmt.Errorf("should be nonzero")
+		}
+		return nil
+	}
+
+	errs := vd.Validate(Y{ X{
+		A: 0,
+	}})
+
+	if len(errs) != 1 {
+		t.Fatal("wrong number of errors for two failures:", errs)
+	}
+	if errs[0].Error() != "field A is invalid: should be nonzero" {
+		t.Fatal("first error should be nonzero:", errs[0])
+	}
+}
