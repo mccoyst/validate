@@ -57,7 +57,7 @@ func (v V) Validate(s interface{}) []error {
 	}
 
 	val := reflect.ValueOf(s)
-	errs := []error{}
+	var errs []error
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
@@ -92,8 +92,5 @@ func (v V) Validate(s interface{}) []error {
 		}
 	}
 
-	if len(errs) > 0 {
-		return errs
-	}
-	return nil
+	return errs
 }
