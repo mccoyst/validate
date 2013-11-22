@@ -96,7 +96,7 @@ func TestV_Validate_multi(t *testing.T) {
 	}
 }
 
-func ExampleV_Validate_struct(t *testing.T) {
+func ExampleV_Validate_struct() {
 	type X struct {
 		A int `validate:"nonzero"`
 	}
@@ -125,15 +125,12 @@ func ExampleV_Validate_struct(t *testing.T) {
 		A: 0,
 	}})
 
-	if len(errs) != 2 {
-		t.Fatal("wrong number of errors for two failures: %v", errs)
+	for _, err := range errs {
+		fmt.Println(err)
 	}
-	if errs[0].Error() != "field A is invalid: should be nonzero" {
-		t.Fatal("first error should be nonzero:", errs[0])
-	}
-	if errs[1].Error() != "field X is invalid: 0 is not odd" {
-		t.Fatal("second error should be odd:", errs[1])
-	}
+
+	// Output: field A is invalid: should be nonzero
+	// field X is invalid: 0 is not odd
 }
 
 func TestV_Validate_uninterfaceable(t *testing.T) {
