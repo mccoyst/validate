@@ -2,7 +2,7 @@ package validate
 
 import "fmt"
 
-func ExampleValidate() {
+func ExampleV_Validate() {
 	type X struct {
 		A string `validate:"long"`
 		B string `validate:"short"`
