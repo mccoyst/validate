@@ -79,7 +79,7 @@ func TestV_Validate_undef(t *testing.T) {
 	if len(errs) > 1 {
 		t.Fatalf("too many errors returns for an undefined validator: %v", errs)
 	}
-	if errs[0].Error() != `field A has an undefined validator: "oops"` {
+	if errs[0].Error() != `field A is invalid: undefined validator: "oops"` {
 		t.Fatal("wrong message for an undefined validator:", errs[0].Error())
 	}
 }

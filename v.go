@@ -44,6 +44,17 @@ import (
 // V is a map of tag names to validators.
 type V map[string]func(interface{}) error
 
+// BadField is an error type containing a field name and associated error.
+// This is the type returned from Validate.
+type BadField struct {
+	Field string
+	Err error
+}
+
+func (b BadField) Error() string {
+	return fmt.Sprintf("field %s is invalid: %v", b.Field, b.Err)
+}
+
 // Validate accepts a struct and returns a list of errors for all
 // fields that are invalid. If all fields are valid, or s is not a struct type,
 // Validate returns nil.
@@ -83,11 +94,14 @@ func (v V) Validate(s interface{}) []error {
 
 			vf := v[vt]
 			if vf == nil {
-				errs = append(errs, fmt.Errorf("field %s has an undefined validator: %q", f.Name, vt))
+				errs = append(errs, BadField{
+					Field: f.Name,
+					Err: fmt.Errorf("undefined validator: %q", vt),
+				})
 				continue
 			}
 			if err := vf(val); err != nil {
-				errs = append(errs, fmt.Errorf("field %s is invalid: %v", f.Name, err))
+				errs = append(errs, BadField{f.Name, err})
 			}
 		}
 	}
