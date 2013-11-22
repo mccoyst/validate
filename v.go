@@ -28,6 +28,9 @@ The validators are defined in a map like so:
 When present in a field's tag, the Validate method passes to these functions the value in the field
 and should return an error when the value is deemed invalid.
 
+There is a reserved tag, "struct", which can be used to automatically validate a
+struct field, either named or embedded. This may be combined with user-defined validators.
+
 Reflection is used to access the tags and fields, so the usual caveats and limitations apply.
 */
 package validate
@@ -70,6 +73,14 @@ func (v V) Validate(s interface{}) []error {
 		vts := strings.Split(tag, ",")
 
 		for _, vt := range vts {
+			if vt == "struct" {
+				errs2 := v.Validate(val)
+				if len(errs2) > 0 {
+					errs = append(errs, errs2...)
+				}
+				continue
+			}
+
 			vf := v[vt]
 			if vf == nil {
 				errs = append(errs, fmt.Errorf("field %s has an undefined validator: %q", f.Name, vt))
