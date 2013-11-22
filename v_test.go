@@ -39,6 +39,29 @@ func ExampleV_Validate() {
 	// Output: [field C is invalid: "help me" is too long]
 }
 
+func TestV_Validate_allgood(t *testing.T) {
+	type X struct {
+		A int `validate:"odd"`
+	}
+
+	vd := make(V)
+	vd["odd"] = func(i interface{}) error {
+		n := i.(int)
+		if n & 1 == 0 {
+			return fmt.Errorf("%d is not odd", n)
+		}
+		return nil
+	}
+
+	errs := vd.Validate(X{
+		A: 1,
+	})
+
+	if errs != nil {
+		t.Fatalf("unexpected errors for a valid struct: %v", errs)
+	}
+}
+
 func TestV_Validate_undef(t *testing.T) {
 	type X struct {
 		A string `validate:"oops"`
