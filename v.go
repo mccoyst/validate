@@ -3,7 +3,7 @@
 /*
 Package validate provides a type for automatically validating the fields of structs.
 
-Any fields tagged with the key "validate" will be validated via a user-defined list of validators.
+Any fields tagged with the key "validate" will be validated via a user-defined list of functions.
 For example:
 
 	type X struct {
@@ -13,6 +13,7 @@ For example:
 		D string
 	}
 
+Multiple validators can be named in the tag by separating their names with commas.
 The validators are defined in a map like so:
 
 	vd := make(validate.V)
@@ -23,6 +24,9 @@ The validators are defined in a map like so:
 		…
 	}
 	…
+
+When present in a field's tag, the Validate method passes to these functions the value in the field
+and should return an error when the value is deemed invalid.
 
 Reflection is used to access the tags and fields, so the usual caveats and limitations apply.
 */
