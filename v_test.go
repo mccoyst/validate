@@ -178,3 +178,15 @@ func TestV_Validate_uninterfaceable(t *testing.T) {
 		t.Fatal("wrong number of errors for two failures:", errs)
 	}
 }
+
+func TestV_Validate_nonstruct(t *testing.T) {
+	vd := make(V)
+	vd["wrong"] = func(i interface{}) error {
+		return fmt.Errorf("WRONG: %v", i)
+	}
+
+	errs := vd.Validate(7)
+	if errs != nil {
+		t.Fatal("non-structs should always pass validation: %v", errs)
+	}
+}
