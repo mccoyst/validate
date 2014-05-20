@@ -42,13 +42,13 @@ import (
 )
 
 // V is a map of tag names to validators.
-type V map[string]func(interface{}) error
+type V map[string]func(interface{}, []string) error
 
 // BadField is an error type containing a field name and associated error.
 // This is the type returned from Validate.
 type BadField struct {
 	Field string
-	Err error
+	Err   error
 }
 
 func (b BadField) Error() string {
@@ -92,15 +92,24 @@ func (v V) Validate(s interface{}) []error {
 				continue
 			}
 
+			// Check for params (ie. "max_length[10]")
+			params := []string{}
+			b := strings.Index(vt, "[")
+			if b != -1 {
+				params = strings.Split(vt[b+1:len(vt)-1], "|")
+				vt = vt[0:b]
+			}
+
 			vf := v[vt]
 			if vf == nil {
 				errs = append(errs, BadField{
 					Field: f.Name,
-					Err: fmt.Errorf("undefined validator: %q", vt),
+					Err:   fmt.Errorf("undefined validator: %q", vt),
 				})
 				continue
 			}
-			if err := vf(val); err != nil {
+
+			if err := vf(val, params); err != nil {
 				errs = append(errs, BadField{f.Name, err})
 			}
 		}

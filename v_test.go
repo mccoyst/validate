@@ -2,8 +2,96 @@ package validate
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 )
+
+func ExampleVWithTwoParams_Validate() {
+	type X struct {
+		A string `validate:"between[5|12]"`
+		B string `validate:"between[4|7]"`
+		C string
+		D string
+	}
+
+	vd := make(V)
+
+	vd["between"] = func(i interface{}, p []string) error {
+		s := i.(string)
+
+		switch len(p) {
+		case 1:
+			l, err := strconv.Atoi(p[0])
+
+			if err != nil {
+				panic(err) //"Param needs to be an int")
+			}
+
+			if len(s) != l {
+				return fmt.Errorf("%q needs to be %d in length", s, l)
+			}
+		case 2:
+			b, err := strconv.Atoi(p[0])
+			if err != nil {
+				panic(err) //"Param needs to be an int")
+			}
+			e, err := strconv.Atoi(p[1])
+			if err != nil {
+				panic(err) //"Param needs to be an int")
+			}
+			if len(s) < b || len(s) > e {
+				return fmt.Errorf("%q needs to be between %d and %d in length", s, b, e)
+			}
+		}
+
+		return nil
+	}
+
+	fmt.Println(vd.Validate(X{
+		A: "hello there",
+		B: "hi",
+		C: "help me",
+		D: "I am not validated",
+	}))
+
+	// Output: [field B is invalid: "hi" needs to be between 4 and 7 in length]
+}
+
+func ExampleVWithOneParam_Validate() {
+	type X struct {
+		A string
+		B string
+		C string `validate:"max_length[10]"`
+		D string `validate:"max_length[10]"`
+	}
+
+	vd := make(V)
+
+	vd["max_length"] = func(i interface{}, p []string) error {
+		s := i.(string)
+
+		l, err := strconv.Atoi(p[0])
+
+		if err != nil {
+			panic(err) //"Param needs to be an int")
+		}
+
+		if len(s) > l {
+			return fmt.Errorf("%q needs to be less than %d in length", s, l)
+		}
+
+		return nil
+	}
+
+	fmt.Println(vd.Validate(X{
+		A: "hello there",
+		B: "hi",
+		C: "help me",
+		D: "I am not validated",
+	}))
+
+	// Output: [field D is invalid: "I am not validated" needs to be less than 10 in length]
+}
 
 func ExampleV_Validate() {
 	type X struct {
@@ -14,14 +102,14 @@ func ExampleV_Validate() {
 	}
 
 	vd := make(V)
-	vd["long"] = func(i interface{}) error {
+	vd["long"] = func(i interface{}, p []string) error {
 		s := i.(string)
 		if len(s) < 5 {
 			return fmt.Errorf("%q is too short", s)
 		}
 		return nil
 	}
-	vd["short"] = func(i interface{}) error {
+	vd["short"] = func(i interface{}, p []string) error {
 		s := i.(string)
 		if len(s) >= 5 {
 			return fmt.Errorf("%q is too long", s)
@@ -45,9 +133,9 @@ func TestV_Validate_allgood(t *testing.T) {
 	}
 
 	vd := make(V)
-	vd["odd"] = func(i interface{}) error {
+	vd["odd"] = func(i interface{}, p []string) error {
 		n := i.(int)
-		if n & 1 == 0 {
+		if n&1 == 0 {
 			return fmt.Errorf("%d is not odd", n)
 		}
 		return nil
@@ -90,16 +178,16 @@ func TestV_Validate_multi(t *testing.T) {
 	}
 
 	vd := make(V)
-	vd["nonzero"] = func(i interface{}) error {
+	vd["nonzero"] = func(i interface{}, p []string) error {
 		n := i.(int)
 		if n == 0 {
 			return fmt.Errorf("should be nonzero")
 		}
 		return nil
 	}
-	vd["odd"] = func(i interface{}) error {
+	vd["odd"] = func(i interface{}, p []string) error {
 		n := i.(int)
-		if n & 1 == 0 {
+		if n&1 == 0 {
 			return fmt.Errorf("%d is not odd", n)
 		}
 		return nil
@@ -129,22 +217,22 @@ func ExampleV_Validate_struct() {
 	}
 
 	vd := make(V)
-	vd["nonzero"] = func(i interface{}) error {
+	vd["nonzero"] = func(i interface{}, p []string) error {
 		n := i.(int)
 		if n == 0 {
 			return fmt.Errorf("should be nonzero")
 		}
 		return nil
 	}
-	vd["odd"] = func(i interface{}) error {
+	vd["odd"] = func(i interface{}, p []string) error {
 		x := i.(X)
-		if x.A & 1 == 0 {
+		if x.A&1 == 0 {
 			return fmt.Errorf("%d is not odd", x.A)
 		}
 		return nil
 	}
 
-	errs := vd.Validate(Y{ X{
+	errs := vd.Validate(Y{X{
 		A: 0,
 	}})
 
@@ -162,7 +250,7 @@ func TestV_Validate_uninterfaceable(t *testing.T) {
 	}
 
 	vd := make(V)
-	vd["nonzero"] = func(i interface{}) error {
+	vd["nonzero"] = func(i interface{}, p []string) error {
 		n := i.(int)
 		if n == 0 {
 			return fmt.Errorf("should be nonzero")
@@ -181,7 +269,7 @@ func TestV_Validate_uninterfaceable(t *testing.T) {
 
 func TestV_Validate_nonstruct(t *testing.T) {
 	vd := make(V)
-	vd["wrong"] = func(i interface{}) error {
+	vd["wrong"] = func(i interface{}, p []string) error {
 		return fmt.Errorf("WRONG: %v", i)
 	}
 
