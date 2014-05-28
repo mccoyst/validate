@@ -39,6 +39,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // V is a map of tag names to validators.
@@ -61,7 +62,7 @@ func (b BadField) Error() string {
 //
 // Fields that are not tagged or cannot be interfaced via reflection
 // are skipped.
-func (v V) Validate(s interface{}) []error {
+func (v V) Validate(s interface{}, r []string) []error {
 	t := reflect.TypeOf(s)
 	if t == nil || t.Kind() != reflect.Struct {
 		return nil
@@ -73,6 +74,36 @@ func (v V) Validate(s interface{}) []error {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		fv := val.Field(i)
+
+		// Check for required fields
+		for _, rf := range r {
+			if rf == f.Name {
+
+				// This field is required
+				switch f.Type.Name() {
+				case "string":
+					if fv.Len() == 0 {
+						errs = append(errs, BadField{
+							Field: f.Name,
+							Err:   fmt.Errorf("%s is required", f.Name),
+						})
+					}
+					continue
+				case "Time":
+					ti := fv.Interface()
+					tt := ti.(time.Time)
+					if tt.IsZero() {
+						errs = append(errs, BadField{
+							Field: f.Name,
+							Err:   fmt.Errorf("%s is required", f.Name),
+						})
+					}
+					continue
+				}
+				break
+			}
+		}
+
 		if !fv.CanInterface() {
 			continue
 		}
@@ -85,7 +116,7 @@ func (v V) Validate(s interface{}) []error {
 
 		for _, vt := range vts {
 			if vt == "struct" {
-				errs2 := v.Validate(val)
+				errs2 := v.Validate(val, r)
 				if len(errs2) > 0 {
 					errs = append(errs, errs2...)
 				}
@@ -113,6 +144,7 @@ func (v V) Validate(s interface{}) []error {
 				errs = append(errs, BadField{f.Name, err})
 			}
 		}
+
 	}
 
 	return errs
