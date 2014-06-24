@@ -39,7 +39,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 )
 
 // V is a map of tag names to validators.
@@ -56,13 +55,17 @@ func (b BadField) Error() string {
 	return fmt.Sprintf("field %s is invalid: %v", b.Field, b.Err)
 }
 
+func NotCovered() {
+	fmt.Println("This will not be covered")
+
+}
 // Validate accepts a struct and returns a list of errors for all
 // fields that are invalid. If all fields are valid, or s is not a struct type,
 // Validate returns nil.
 //
 // Fields that are not tagged or cannot be interfaced via reflection
 // are skipped.
-func (v V) Validate(s interface{}, r []string) []error {
+func (v V) Validate(s interface{}) []error {
 	t := reflect.TypeOf(s)
 	if t == nil || t.Kind() != reflect.Struct {
 		return nil
@@ -74,35 +77,6 @@ func (v V) Validate(s interface{}, r []string) []error {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		fv := val.Field(i)
-
-		// Check for required fields
-		for _, rf := range r {
-			if rf == f.Name {
-
-				// This field is required
-				switch f.Type.Name() {
-				case "string":
-					if fv.Len() == 0 {
-						errs = append(errs, BadField{
-							Field: f.Name,
-							Err:   fmt.Errorf("%s is required", f.Name),
-						})
-					}
-					continue
-				case "Time":
-					ti := fv.Interface()
-					tt := ti.(time.Time)
-					if tt.IsZero() {
-						errs = append(errs, BadField{
-							Field: f.Name,
-							Err:   fmt.Errorf("%s is required", f.Name),
-						})
-					}
-					continue
-				}
-				break
-			}
-		}
 
 		if !fv.CanInterface() {
 			continue
@@ -116,7 +90,7 @@ func (v V) Validate(s interface{}, r []string) []error {
 
 		for _, vt := range vts {
 			if vt == "struct" {
-				errs2 := v.Validate(val, r)
+				errs2 := v.Validate(val)
 				if len(errs2) > 0 {
 					errs = append(errs, errs2...)
 				}
