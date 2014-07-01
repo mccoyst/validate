@@ -42,17 +42,21 @@ import (
 )
 
 // V is a map of tag names to validators.
-type V map[string]func(interface{}) error
+type V map[string]func(interface{}, []string) error
 
 // BadField is an error type containing a field name and associated error.
 // This is the type returned from Validate.
 type BadField struct {
 	Field string
-	Err error
+	Err   error
 }
 
 func (b BadField) Error() string {
 	return fmt.Sprintf("field %s is invalid: %v", b.Field, b.Err)
+}
+
+func NotCovered() {
+	fmt.Println("This will not be covered")
 }
 
 // Validate accepts a struct and returns a list of errors for all
@@ -61,18 +65,19 @@ func (b BadField) Error() string {
 //
 // Fields that are not tagged or cannot be interfaced via reflection
 // are skipped.
-func (v V) Validate(s interface{}) []error {
+func (v V) Validate(s interface{}) []BadField {
 	t := reflect.TypeOf(s)
 	if t == nil || t.Kind() != reflect.Struct {
 		return nil
 	}
 
 	val := reflect.ValueOf(s)
-	var errs []error
+	var errs []BadField
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 		fv := val.Field(i)
+
 		if !fv.CanInterface() {
 			continue
 		}
@@ -92,18 +97,28 @@ func (v V) Validate(s interface{}) []error {
 				continue
 			}
 
+			// Check for params (ie. "max_length[10]")
+			params := []string{}
+			b := strings.Index(vt, "[")
+			if b != -1 {
+				params = strings.Split(vt[b+1:len(vt)-1], "|")
+				vt = vt[0:b]
+			}
+
 			vf := v[vt]
 			if vf == nil {
 				errs = append(errs, BadField{
 					Field: f.Name,
-					Err: fmt.Errorf("undefined validator: %q", vt),
+					Err:   fmt.Errorf("undefined validator: %q", vt),
 				})
 				continue
 			}
-			if err := vf(val); err != nil {
+
+			if err := vf(val, params); err != nil {
 				errs = append(errs, BadField{f.Name, err})
 			}
 		}
+
 	}
 
 	return errs
