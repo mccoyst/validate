@@ -57,22 +57,22 @@ func (b BadField) Error() string {
 
 func NotCovered() {
 	fmt.Println("This will not be covered")
-
 }
+
 // Validate accepts a struct and returns a list of errors for all
 // fields that are invalid. If all fields are valid, or s is not a struct type,
 // Validate returns nil.
 //
 // Fields that are not tagged or cannot be interfaced via reflection
 // are skipped.
-func (v V) Validate(s interface{}) []error {
+func (v V) Validate(s interface{}) []BadField {
 	t := reflect.TypeOf(s)
 	if t == nil || t.Kind() != reflect.Struct {
 		return nil
 	}
 
 	val := reflect.ValueOf(s)
-	var errs []error
+	var errs []BadField
 
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
