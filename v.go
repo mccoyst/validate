@@ -48,7 +48,7 @@ type V map[string]func(interface{}) error
 // This is the type returned from Validate.
 type BadField struct {
 	Field string
-	Err error
+	Err   error
 }
 
 func (b BadField) Error() string {
@@ -62,12 +62,17 @@ func (b BadField) Error() string {
 // Fields that are not tagged or cannot be interfaced via reflection
 // are skipped.
 func (v V) Validate(s interface{}) []error {
-	t := reflect.TypeOf(s)
+	val := reflect.ValueOf(s)
+
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	t := val.Type()
 	if t == nil || t.Kind() != reflect.Struct {
 		return nil
 	}
 
-	val := reflect.ValueOf(s)
 	var errs []error
 
 	for i := 0; i < t.NumField(); i++ {
@@ -96,7 +101,7 @@ func (v V) Validate(s interface{}) []error {
 			if vf == nil {
 				errs = append(errs, BadField{
 					Field: f.Name,
-					Err: fmt.Errorf("undefined validator: %q", vt),
+					Err:   fmt.Errorf("undefined validator: %q", vt),
 				})
 				continue
 			}
