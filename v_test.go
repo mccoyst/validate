@@ -47,7 +47,7 @@ func TestV_Validate_allgood(t *testing.T) {
 	vd := make(V)
 	vd["odd"] = func(i interface{}) error {
 		n := i.(int)
-		if n & 1 == 0 {
+		if n&1 == 0 {
 			return fmt.Errorf("%d is not odd", n)
 		}
 		return nil
@@ -99,7 +99,7 @@ func TestV_Validate_multi(t *testing.T) {
 	}
 	vd["odd"] = func(i interface{}) error {
 		n := i.(int)
-		if n & 1 == 0 {
+		if n&1 == 0 {
 			return fmt.Errorf("%d is not odd", n)
 		}
 		return nil
@@ -138,13 +138,13 @@ func ExampleV_Validate_struct() {
 	}
 	vd["odd"] = func(i interface{}) error {
 		x := i.(X)
-		if x.A & 1 == 0 {
+		if x.A&1 == 0 {
 			return fmt.Errorf("%d is not odd", x.A)
 		}
 		return nil
 	}
 
-	errs := vd.Validate(Y{ X{
+	errs := vd.Validate(Y{X{
 		A: 0,
 	}})
 
