@@ -109,7 +109,7 @@ func TestV_Validate_multi(t *testing.T) {
 	})
 
 	if len(errs) != 2 {
-		t.Fatal("wrong number of errors for two failures: %v", errs)
+		t.Fatalf("wrong number of errors for two failures: %v", errs)
 	}
 	if errs[0].Error() != "field A is invalid: should be nonzero" {
 		t.Fatal("first error should be nonzero:", errs[0])
@@ -187,6 +187,6 @@ func TestV_Validate_nonstruct(t *testing.T) {
 
 	errs := vd.Validate(7)
 	if errs != nil {
-		t.Fatal("non-structs should always pass validation: %v", errs)
+		t.Fatalf("non-structs should always pass validation: %v", errs)
 	}
 }
