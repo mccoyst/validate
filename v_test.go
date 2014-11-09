@@ -190,3 +190,31 @@ func TestV_Validate_nonstruct(t *testing.T) {
 		t.Fatalf("non-structs should always pass validation: %v", errs)
 	}
 }
+
+func TestV_ValidateAndTag(t *testing.T) {
+	type X struct {
+		A int `validate:"odd" somethin:"hiya"`
+	}
+
+	vd := make(V)
+	vd["odd"] = func(i interface{}) error {
+		n := i.(int)
+		if n&1 == 0 {
+			return fmt.Errorf("%d is not odd", n)
+		}
+		return nil
+	}
+
+	errs := vd.ValidateAndTag(X{
+		A: 2,
+	}, "somethin")
+
+	if len(errs) != 1 {
+		t.Fatalf("unexpected quantity of errors: %v", errs)
+	}
+
+	bf := errs[0].(BadField)
+	if bf.Field != "hiya" {
+		t.Fatalf("wrong field name in BadField: %q", bf.Field)
+	}
+}

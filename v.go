@@ -62,6 +62,22 @@ func (b BadField) Error() string {
 // Fields that are not tagged or cannot be interfaced via reflection
 // are skipped.
 func (v V) Validate(s interface{}) []error {
+	return v.ValidateAndTag(s, "")
+}
+
+// ValidateAndTag behaves like Validate, but uses the value of the supplied
+// nameTag instead of the field name when reporting errors. For example:
+//
+//	struct X{
+//		Y int `json:"height" validate:"nonzero"`
+//	}
+//
+//	errs := v.ValidateAndTag(X{}, "json")
+//
+// The returned BadField will contain "height" instead of "Y" in Field.
+//
+// When nameTag == "", ValidateAndTag behaves identically to Validate.
+func (v V) ValidateAndTag(s interface{}, nameTag string) []error {
 	val := reflect.ValueOf(s)
 
 	if val.Kind() == reflect.Ptr {
@@ -97,16 +113,21 @@ func (v V) Validate(s interface{}) []error {
 				continue
 			}
 
+			name := f.Name
+			if nameTag != "" {
+				name = f.Tag.Get(nameTag)
+			}
+
 			vf := v[vt]
 			if vf == nil {
 				errs = append(errs, BadField{
-					Field: f.Name,
+					Field: name,
 					Err:   fmt.Errorf("undefined validator: %q", vt),
 				})
 				continue
 			}
 			if err := vf(val); err != nil {
-				errs = append(errs, BadField{f.Name, err})
+				errs = append(errs, BadField{name, err})
 			}
 		}
 	}
