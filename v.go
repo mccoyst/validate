@@ -13,7 +13,8 @@ For example:
 		D string
 	}
 
-Multiple validators can be named in the tag by separating their names with commas.
+As shown, multiple validators can be named by separating each with a comma.
+
 The validators are defined in a map like so:
 
 	vd := make(validate.V)
@@ -25,13 +26,16 @@ The validators are defined in a map like so:
 	}
 	…
 
-When present in a field's tag, the Validate method passes to these functions the value in the field
-and should return an error when the value is deemed invalid.
+Validate passes the values of the tagged fields to these functions,
+which should return an error when they decide a value is invalid.
 
-There is a reserved tag, "struct", which can be used to automatically validate a
-struct field, either named or embedded. This may be combined with user-defined validators.
+There is a reserved tag, "struct",
+which can be used to automatically validate
+the fields of a named or embedded struct field.
+"struct" may be combined with user-defined validators.
 
-Reflection is used to access the tags and fields, so the usual caveats and limitations apply.
+Reflection is used to access the tags and fields,
+so the usual caveats and limitations apply.
 */
 package validate
 
