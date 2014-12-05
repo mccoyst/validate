@@ -119,9 +119,8 @@ func (v V) validateAndTagPrefix(s interface{}, nameTag string, prefix string) []
 			}
 
 			if len(prefix) > 0 {
-				prefix += "."
+				name = prefix + "." + name
 			}
-			name = prefix + name
 
 			if vt == "struct" {
 				errs2 := v.validateAndTagPrefix(val, "", name)
