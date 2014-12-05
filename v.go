@@ -82,6 +82,10 @@ func (v V) Validate(s interface{}) []error {
 //
 // When nameTag == "", ValidateAndTag behaves identically to Validate.
 func (v V) ValidateAndTag(s interface{}, nameTag string) []error {
+	return v.validateAndTagPrefix(s, nameTag, "")
+}
+
+func (v V) validateAndTagPrefix(s interface{}, nameTag string, prefix string) []error {
 	val := reflect.ValueOf(s)
 
 	if val.Kind() == reflect.Ptr {
@@ -109,17 +113,22 @@ func (v V) ValidateAndTag(s interface{}, nameTag string) []error {
 		vts := strings.Split(tag, ",")
 
 		for _, vt := range vts {
+			name := f.Name
+			if nameTag != "" {
+				name = f.Tag.Get(nameTag)
+			}
+
+			if len(prefix) > 0 {
+				prefix += "."
+			}
+			name = prefix + name
+
 			if vt == "struct" {
-				errs2 := v.Validate(val)
+				errs2 := v.validateAndTagPrefix(val, "", name)
 				if len(errs2) > 0 {
 					errs = append(errs, errs2...)
 				}
 				continue
-			}
-
-			name := f.Name
-			if nameTag != "" {
-				name = f.Tag.Get(nameTag)
 			}
 
 			vf := v[vt]

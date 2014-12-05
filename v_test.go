@@ -152,7 +152,7 @@ func ExampleV_Validate_struct() {
 		fmt.Println(err)
 	}
 
-	// Output: field A is invalid: should be nonzero
+	// Output: field X.A is invalid: should be nonzero
 	// field X is invalid: 0 is not odd
 }
 
