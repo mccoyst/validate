@@ -123,7 +123,7 @@ func (v V) validateAndTagPrefix(s interface{}, nameTag string, prefix string) []
 			}
 
 			if vt == "struct" {
-				errs2 := v.validateAndTagPrefix(val, "", name)
+				errs2 := v.validateAndTagPrefix(val, nameTag, name)
 				if len(errs2) > 0 {
 					errs = append(errs, errs2...)
 				}
